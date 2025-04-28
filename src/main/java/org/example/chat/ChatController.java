@@ -3,16 +3,16 @@ package org.example.chat;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.application.Platform; // Įsitikinkite, kad turite šį importą
+import javafx.application.Platform;
 
 public class ChatController {
 
-    // Kiti jau esami laukeliai
     @FXML private TextField nicknameField;
     @FXML private TextField roomField;
     @FXML private TextArea chatArea;
     @FXML private TextField inputField;
     @FXML private TextField switchRoomField;
+    @FXML private TextField privateMessageField;  // Naujas laukelis privačioms žinutėms
 
     private static ChatController instance;
     private Client client;
@@ -25,9 +25,6 @@ public class ChatController {
 
     public static void appendMessage(String message) {
         if (instance != null) {
-            // Debugging pranešimai
-            System.out.println("Appending message: " + message);
-
             // Užtikriname, kad atnaujinimas būtų vykdomas JavaFX UI thread
             Platform.runLater(() -> {
                 // Jei žinutė priklauso šiam vartotojui, parodome ją kaip "Me:"
@@ -82,6 +79,22 @@ public class ChatController {
                 chatArea.clear(); // Išvalome seną chatą
                 chatArea.appendText("Prisijungėte į kambarį: " + newRoom + "\n");
                 switchRoomField.clear();
+            }
+        }
+    }
+
+    // Naujas metodas privačioms žinutėms
+    @FXML
+    private void sendPrivateMessage() {
+        if (client != null) {
+            String targetUser = privateMessageField.getText().split(":")[0].trim(); // Paimti tik vartotojo vardą
+            String message = privateMessageField.getText().split(":")[1].trim(); // Paimti pranešimo tekstą
+            if (!targetUser.isEmpty() && !message.isEmpty()) {
+                // Siunčiame privačią žinutę
+                client.sendMessage("/private " + targetUser + " " + message);
+
+                appendMessage("Private message " + targetUser + ": " + message); // Rodyti privačią žinutę
+                privateMessageField.clear(); // Išvalome laukelį
             }
         }
     }

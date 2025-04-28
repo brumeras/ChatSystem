@@ -11,7 +11,6 @@ public class Client {
     private BufferedReader in;
     private PrintWriter out;
 
-    // Konstruktoras, kuris priima nickname ir roomName
     public Client(String nickname, String roomName, ChatController controller) {
         this.nickname = nickname;
         this.roomName = roomName;
@@ -50,6 +49,13 @@ public class Client {
     public void sendMessage(String message) {
         if (out != null) {
             out.println(message);
+        }
+    }
+
+    // Siųsti privačią žinutę
+    public void sendPrivateMessage(String targetUser, String message) {
+        if (out != null) {
+            out.println("/private " + targetUser + " " + message);
         }
     }
 }

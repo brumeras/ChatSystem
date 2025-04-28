@@ -1,11 +1,7 @@
 package org.example.chat;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -22,21 +18,19 @@ public class Server implements Runnable {
     @Override
     public void run() {
         try {
-            // Bandom užkurti serverį, klausyti prievado 9999
             server = new ServerSocket(9999);
-            System.out.println("Server started on port 9999!"); // Pranešimas apie serverio paleidimą
+            System.out.println("Server started on port 9999!"); // Serverio paleidimas
 
             while (!done) {
-                // Priimame naujus klientus
-                Socket client = server.accept();
+                Socket client = server.accept();  // Priimame naują klientą
                 ConnectionHandler handler = new ConnectionHandler(client);
                 connections.add(handler);
                 pool.execute(handler);
             }
         } catch (IOException e) {
             System.out.println("Error starting the server:");
-            e.printStackTrace(); // Jei įvyksta klaida, išvedame išsamią klaidą
-            shutdown();
+            e.printStackTrace();
+            shutdown();  // Uždarome serverį
         }
     }
 
@@ -54,7 +48,7 @@ public class Server implements Runnable {
         done = true;
         try {
             if (server != null && !server.isClosed()) {
-                server.close();
+                server.close();  // Uždaryti serverio lizdą
             }
         } catch (IOException e) {
             // Ignore
@@ -67,14 +61,22 @@ public class Server implements Runnable {
     // Paskelbti žinutę visiems kambario dalyviams
     public void broadcast(String message, String roomName, ConnectionHandler sender) {
         for (ConnectionHandler ch : connections) {
-            // Siųsti tik tiems vartotojams, kurie yra tame pačiame kambaryje
             if (ch != sender && ch.getRoomName().equals(roomName)) {
                 ch.sendMessage(message);
             }
         }
-
         // Saugojame žinutę į kambario žinučių sąrašą
         roomMessages.computeIfAbsent(roomName, k -> new ArrayList<>()).add(message);
+    }
+
+    // Siųsti privačią žinutę tik tam vartotojui
+    public void sendPrivateMessage(String targetUser, String message) {
+        for (ConnectionHandler ch : connections) {
+            if (ch.getNickname().equals(targetUser)) {
+                ch.sendMessage(message);
+                break;
+            }
+        }
     }
 
     // Klasė, kuri priima ir apdoroja klientų užklausas
@@ -87,6 +89,10 @@ public class Server implements Runnable {
 
         public ConnectionHandler(Socket client) {
             this.client = client;
+        }
+
+        public String getNickname() {
+            return nickname;
         }
 
         public String getRoomName() {
@@ -104,7 +110,7 @@ public class Server implements Runnable {
                 roomName = in.readLine();
 
                 if (roomName == null || roomName.trim().isEmpty()) {
-                    roomName = "main";
+                    roomName = "main";  // Jei kambarys nebuvo nurodytas, nustatome "main"
                 }
 
                 // Siunčiame žinutes, kurios jau buvo išsiųstos į šį kambarį
@@ -113,7 +119,7 @@ public class Server implements Runnable {
                     out.println(message);
                 }
 
-                broadcast(nickname + " joined the room!", roomName, this);
+                broadcast(nickname + " joined the room!", roomName, this);  // Pranešame kitiems, kad vartotojas prisijungė
 
                 String message;
                 while ((message = in.readLine()) != null) {
@@ -124,13 +130,20 @@ public class Server implements Runnable {
                         String newRoom = message.substring(6).trim();
                         if (!newRoom.isEmpty()) {
                             String oldRoom = roomName;
-                            broadcast(nickname + " left the room.", oldRoom, this);
+                            broadcast(nickname + " left the room.", oldRoom, this);  // Pranešame, kad paliko kambarį
                             roomName = newRoom;
-                            out.println("You have joined the room: " + roomName);
-                            broadcast(nickname + " joined the room.", roomName, this);
+                            out.println("You have joined the room: " + roomName);  // Informuojame, kad perejo į naują kambarį
+                            broadcast(nickname + " joined the room.", roomName, this);  // Pranešame kitiems, kad prisijungė
+                        }
+                    } else if (message.startsWith("/private ")) {
+                        String[] parts = message.split(" ", 3);  // /private <targetUser> <message>
+                        if (parts.length > 2) {
+                            String targetUser = parts[1];
+                            String privateMessage = parts[2];
+                            sendPrivateMessage(targetUser, nickname + " (private): " + privateMessage);  // Siunčiame privačią žinutę
                         }
                     } else {
-                        broadcast(nickname + ": " + message, roomName, this);
+                        broadcast(nickname + ": " + message, roomName, this);  // Paskelbti žinutę visiems kambario dalyviams
                     }
                 }
             } catch (Exception e) {
@@ -139,14 +152,14 @@ public class Server implements Runnable {
         }
 
         public void sendMessage(String message) {
-            out.println(message);
+            out.println(message);  // Siųsti žinutę klientui
         }
 
         public void shutdown() {
             try {
-                connections.remove(this);
+                connections.remove(this);  // Pašalinti šį klientą iš sąrašo
                 if (nickname != null) {
-                    broadcast(nickname + " left the room.", roomName, this);
+                    broadcast(nickname + " left the room.", roomName, this);  // Informuoti kitus, kad vartotojas paliko kambarį
                 }
                 if (in != null) in.close();
                 if (out != null) out.close();
