@@ -1,24 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
 
-<VBox spacing="10.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.chat.ChatController">
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.chat.ChatController">
+    <children>
+        <TextField fx:id="nicknameField" layoutX="14.0" layoutY="14.0" promptText="Enter your nickname"/>
+        <TextField fx:id="roomField" layoutX="14.0" layoutY="50.0" promptText="Enter room name"/>
+        <Button layoutX="14.0" layoutY="90.0" text="Set Nickname" onAction="#setNickname"/>
 
-    <!-- Prisijungimo dalis -->
-    <HBox spacing="10.0">
-        <TextField fx:id="nicknameField" promptText="Įveskite vardą" />
-        <TextField fx:id="roomField" promptText="Įveskite kambario pavadinimą" />
-        <Button text="Prisijungti" onAction="#setNickname" />
-    </HBox>
+        <TextArea fx:id="chatArea" layoutX="14.0" layoutY="140.0" prefHeight="300.0" prefWidth="400.0" editable="false"/>
 
-    <!-- Chat'o zona -->
-    <TextArea fx:id="chatArea" editable="false" prefHeight="400.0" wrapText="true" />
+        <TextField fx:id="inputField" layoutX="14.0" layoutY="460.0" promptText="Enter message"/>
+        <Button layoutX="420.0" layoutY="460.0" text="Send" onAction="#sendMessage"/>
 
-    <!-- Žinutės siuntimo zona -->
-    <HBox spacing="10.0">
-        <TextField fx:id="inputField" promptText="Rašykite žinutę..." HBox.hgrow="ALWAYS"/>
-        <Button text="Siųsti" onAction="#sendMessage" />
-    </HBox>
-
-</VBox>
+        <TextField fx:id="switchRoomField" layoutX="14.0" layoutY="500.0" promptText="Switch Room"/>
+        <Button layoutX="420.0" layoutY="500.0" text="Switch Room" onAction="#switchRoom"/>
+    </children>
+</AnchorPane>

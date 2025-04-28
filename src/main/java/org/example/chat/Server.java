@@ -17,32 +17,30 @@ public class Server implements Runnable {
     private ServerSocket server;
     private boolean done;
     private ExecutorService pool = Executors.newCachedThreadPool();
+    private Map<String, List<String>> roomMessages = new HashMap<>(); // Kambarių žinučių saugojimas
 
     @Override
     public void run() {
         try {
+            // Bandom užkurti serverį, klausyti prievado 9999
             server = new ServerSocket(9999);
-            System.out.println("Server started on port 9999!");
+            System.out.println("Server started on port 9999!"); // Pranešimas apie serverio paleidimą
 
             while (!done) {
+                // Priimame naujus klientus
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client);
                 connections.add(handler);
                 pool.execute(handler);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
+            System.out.println("Error starting the server:");
+            e.printStackTrace(); // Jei įvyksta klaida, išvedame išsamią klaidą
             shutdown();
         }
     }
 
-    public void broadcast(String message, ConnectionHandler sender) {
-        for (ConnectionHandler ch : connections) {
-            if (ch != sender && ch.getRoomName().equals(sender.getRoomName())) {
-                ch.sendMessage(message);
-            }
-        }
-    }
-
+    // Grąžina kambarių sąrašą
     public Set<String> listRooms() {
         Set<String> rooms = new HashSet<>();
         for (ConnectionHandler ch : connections) {
@@ -51,6 +49,7 @@ public class Server implements Runnable {
         return rooms;
     }
 
+    // Serverio uždarymas
     public void shutdown() {
         done = true;
         try {
@@ -65,8 +64,21 @@ public class Server implements Runnable {
         }
     }
 
-    class ConnectionHandler implements Runnable {
+    // Paskelbti žinutę visiems kambario dalyviams
+    public void broadcast(String message, String roomName, ConnectionHandler sender) {
+        for (ConnectionHandler ch : connections) {
+            // Siųsti tik tiems vartotojams, kurie yra tame pačiame kambaryje
+            if (ch != sender && ch.getRoomName().equals(roomName)) {
+                ch.sendMessage(message);
+            }
+        }
 
+        // Saugojame žinutę į kambario žinučių sąrašą
+        roomMessages.computeIfAbsent(roomName, k -> new ArrayList<>()).add(message);
+    }
+
+    // Klasė, kuri priima ir apdoroja klientų užklausas
+    public class ConnectionHandler implements Runnable {
         private Socket client;
         private BufferedReader in;
         private PrintWriter out;
@@ -87,24 +99,38 @@ public class Server implements Runnable {
                 out = new PrintWriter(client.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
+                // Gavome vartotojo vardą ir kambario pavadinimą
                 nickname = in.readLine();
                 roomName = in.readLine();
 
-                if (nickname != null && !nickname.trim().isEmpty()) {
-                    System.out.println(nickname + " joined room " + roomName);
-                    broadcast(nickname + " joined the room!", this);
+                if (roomName == null || roomName.trim().isEmpty()) {
+                    roomName = "main";
                 }
+
+                // Siunčiame žinutes, kurios jau buvo išsiųstos į šį kambarį
+                List<String> previousMessages = roomMessages.getOrDefault(roomName, new ArrayList<>());
+                for (String message : previousMessages) {
+                    out.println(message);
+                }
+
+                broadcast(nickname + " joined the room!", roomName, this);
 
                 String message;
                 while ((message = in.readLine()) != null) {
                     if (message.equalsIgnoreCase("/quit")) {
                         shutdown();
                         break;
-                    } else if (message.equalsIgnoreCase("/list")) {
-                        Set<String> rooms = listRooms();
-                        out.println("Available rooms: " + String.join(", ", rooms));
+                    } else if (message.startsWith("/join ")) {
+                        String newRoom = message.substring(6).trim();
+                        if (!newRoom.isEmpty()) {
+                            String oldRoom = roomName;
+                            broadcast(nickname + " left the room.", oldRoom, this);
+                            roomName = newRoom;
+                            out.println("You have joined the room: " + roomName);
+                            broadcast(nickname + " joined the room.", roomName, this);
+                        }
                     } else {
-                        broadcast(nickname + ": " + message, this);
+                        broadcast(nickname + ": " + message, roomName, this);
                     }
                 }
             } catch (Exception e) {
@@ -120,7 +146,7 @@ public class Server implements Runnable {
             try {
                 connections.remove(this);
                 if (nickname != null) {
-                    broadcast(nickname + " left the room.", this);
+                    broadcast(nickname + " left the room.", roomName, this);
                 }
                 if (in != null) in.close();
                 if (out != null) out.close();
@@ -135,6 +161,6 @@ public class Server implements Runnable {
 
     public static void main(String[] args) {
         Server server = new Server();
-        new Thread(server).start();
+        new Thread(server).start();  // Paleisti serverį
     }
 }

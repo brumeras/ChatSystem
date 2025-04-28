@@ -1,75 +1,55 @@
 package org.example.chat;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 
 public class Client {
-
-    private Socket client;
-    private BufferedReader in;
-    private PrintWriter out;
     private String nickname;
     private String roomName;
-    private boolean done = false;
-    private ChatController chatController;
+    private ChatController controller;
+    private Socket socket;
+    private BufferedReader in;
+    private PrintWriter out;
 
-    public Client(String nickname, String roomName, ChatController chatController) {
+    // Konstruktoras, kuris priima nickname ir roomName
+    public Client(String nickname, String roomName, ChatController controller) {
         this.nickname = nickname;
-        this.chatController = chatController;
+        this.roomName = roomName;
+        this.controller = controller;
+
         try {
-            client = new Socket("127.0.0.1", 9999);
-            out = new PrintWriter(client.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            socket = new Socket("localhost", 9999); // Susijungimas su serveriu
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
 
-            out.println(nickname); // Pirmas dalykas - siunčiam nickname
-            out.println(roomName); // Antras dalykas - siunčiam room name
+            // Siunčiame informaciją apie vartotoją
+            out.println(nickname);
+            out.println(roomName);
 
-            // Klausytojas
-            Thread listenerThread = new Thread(() -> {
-                try {
-                    String inMessage;
-                    while ((inMessage = in.readLine()) != null && !done) {
-                        chatController.appendMessage(inMessage);
-                    }
-                } catch (IOException e) {
-                    System.out.println("Disconnected from server.");
-                    shutdown();
-                }
-            });
-            listenerThread.setDaemon(true);
-            listenerThread.start();
-
+            // Paleisti thread, kuris klausys serverio žinučių
+            new Thread(this::listenForMessages).start();
         } catch (IOException e) {
-            System.out.println("Error: Unable to connect to server.");
+            e.printStackTrace();
         }
     }
 
+    // Klausytųjas, kuris gauna žinutes iš serverio ir jas atnaujina UI
+    private void listenForMessages() {
+        try {
+            String message;
+            while ((message = in.readLine()) != null) {
+                // Atnaujina UI, kai gauna žinutę iš serverio
+                ChatController.appendMessage(message);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Siųsti žinutę serveriui
     public void sendMessage(String message) {
-        if (out != null && message != null && !message.isEmpty()) {
+        if (out != null) {
             out.println(message);
-            if (message.equalsIgnoreCase("/quit")) {
-                shutdown();
-            }
-        }
-    }
-
-    public void shutdown() {
-        done = true;
-        try {
-            if (out != null) {
-                out.println("/quit");
-            }
-            if (in != null) in.close();
-            if (out != null) out.close();
-            if (client != null && !client.isClosed()) {
-                client.close();
-            }
-            System.out.println("Client disconnected.");
-        } catch (IOException e) {
-            System.out.println("Error shutting down client.");
         }
     }
 }
