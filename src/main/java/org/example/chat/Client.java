@@ -12,11 +12,11 @@ public class Client {
     private BufferedReader in;
     private PrintWriter out;
     private String nickname;
+    private String roomName;
     private boolean done = false;
-    private ChatController chatController; // Perduodame ChatController į Client
+    private ChatController chatController;
 
-    // Konstruktoras priima nickname ir ChatController
-    public Client(String nickname, ChatController chatController) {
+    public Client(String nickname, String roomName, ChatController chatController) {
         this.nickname = nickname;
         this.chatController = chatController;
         try {
@@ -24,14 +24,15 @@ public class Client {
             out = new PrintWriter(client.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-            out.println(nickname); // Siunčiame nickname į serverį
+            out.println(nickname); // Pirmas dalykas - siunčiam nickname
+            out.println(roomName); // Antras dalykas - siunčiam room name
 
-            // Klausytojo gija, kuri gauna žinutes
+            // Klausytojas
             Thread listenerThread = new Thread(() -> {
                 try {
                     String inMessage;
                     while ((inMessage = in.readLine()) != null && !done) {
-                        chatController.appendMessage(inMessage); // Rodyti žinutę tik kitiems
+                        chatController.appendMessage(inMessage);
                     }
                 } catch (IOException e) {
                     System.out.println("Disconnected from server.");
@@ -46,22 +47,20 @@ public class Client {
         }
     }
 
-    // Siunčiame žinutę į serverį
     public void sendMessage(String message) {
-        if (out != null && message != null && !message.trim().isEmpty()) {
-            out.println(message); // Siunčiame žinutę
+        if (out != null && message != null && !message.isEmpty()) {
+            out.println(message);
             if (message.equalsIgnoreCase("/quit")) {
-                shutdown(); // Uždaryti ryšį, jei /quit
+                shutdown();
             }
         }
     }
 
-    // Uždaryti ryšį su serveriu
     public void shutdown() {
         done = true;
         try {
             if (out != null) {
-                out.println("/quit"); // Pranešame serveriui apie uždarymą
+                out.println("/quit");
             }
             if (in != null) in.close();
             if (out != null) out.close();
