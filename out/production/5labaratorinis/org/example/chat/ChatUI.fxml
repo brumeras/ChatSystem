@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.chat.ChatController"
+            prefHeight="400.0" prefWidth="600.0">
+
+    <VBox alignment="CENTER" spacing="10.0" AnchorPane.topAnchor="20.0" AnchorPane.leftAnchor="20.0">
+        <TextField fx:id="nicknameField" promptText="Įveskite savo vardą"/>
+        <Button text="Prisijungti" onAction="#setNickname"/>
+
+        <TextArea fx:id="chatArea" editable="false" prefHeight="300.0" prefWidth="550.0"/>
+
+        <HBox spacing="10">
+            <TextField fx:id="inputField" promptText="Rašykite žinutę" prefWidth="450.0"/>
+            <Button text="Siųsti" onAction="#sendMessage"/>
+        </HBox>
+    </VBox>
+
+
+</AnchorPane>

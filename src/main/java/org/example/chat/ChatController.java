@@ -20,27 +20,40 @@ public class ChatController {
 
     public static void appendMessage(String message) {
         if (instance != null) {
-            instance.chatArea.appendText(message + "\n");
+            if (message.startsWith(instance.nickname + ": ")) {
+                instance.chatArea.appendText("Me: " + message.substring(instance.nickname.length() + 2) + "\n");
+            } else {
+                instance.chatArea.appendText(message + "\n");
+            }
         }
     }
 
+    
     @FXML
     private void setNickname() {
-        nickname = nicknameField.getText();
-        if (!nickname.isEmpty()) {
-            client = new Client(nickname); // Sukuriame klientą su nickname
-            chatArea.appendText("Prisijungėte kaip " + nickname + "\n");
-            nicknameField.setDisable(true); // Užrakina lauką po įvedimo
+        String enteredNickname = nicknameField.getText().trim();
+
+        // Patikrinimas: ar vardas tuščias arba jau naudojamas
+        if (enteredNickname.isEmpty() || enteredNickname.contains(":")) {
+            chatArea.appendText("Klaida: netinkamas vardas!\n");
+            return;
         }
+
+        nickname = enteredNickname;
+        client = new Client(nickname, this);
+        chatArea.appendText("Prisijungėte kaip " + nickname + "\n");
+        nicknameField.setDisable(true);
     }
 
     @FXML
     private void sendMessage() {
         if (client != null) {
-            String message = inputField.getText();
+            String message = inputField.getText().trim();
             if (!message.isEmpty()) {
-                client.sendMessage(message); // Call Client's sendMessage method
-                chatArea.appendText(nickname + ": " + message + "\n"); // Show sender's nickname
+                // Užtikriname, kad žinutė rodomų be dubliuoto vardo
+                String formattedMessage = nickname + ": " + message;
+                client.sendMessage(formattedMessage);
+                appendMessage(formattedMessage);
                 inputField.clear();
             }
         }
