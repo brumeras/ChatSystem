@@ -51,3 +51,4 @@ main;ug;ug: labas
 k;tra;tra left the room.
 main;tra;tra joined the room.
 private;em;laqbas
+main;ug;ug left the room.

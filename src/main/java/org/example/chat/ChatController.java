@@ -1,3 +1,8 @@
+/*
+@author Emilija Sankauskaitė 5 grupė, VU programų sistemos
+Ši klasė yra vartotojo pokalbių valdymo centras.
+ */
+
 package org.example.chat;
 
 import javafx.fxml.FXML;
@@ -18,19 +23,29 @@ public class ChatController {
     @FXML private TextField privateMessageField;
     @FXML private ListView<String> roomList;// Naujas laukelis privačioms žinutėms
 
+
+    //Naudojamas instance, kad būtų galima kitoms klasėms pasiekti UI valdymą
     private static ChatController instance;
     private Client client;
     private String nickname;
     private String roomName;
 
-    public ChatController() {
+    public ChatController()
+    {
         instance = this;
     }
 
-    public static void appendMessage(String message) {
-        if (instance != null) {
+    //Metodas, kuris yra atsakingas už pokalbių sąsajos atnaujinimą.
+    public static void appendMessage(String message)
+    {
+
+        //Jei egzistuojq objektas
+        if(instance != null)
+        {
+            //JavaFX gija veikia atskirai nuo programos
+            //Užtikrinama, kad atnaujinimas vyktų gijoje
             Platform.runLater(() -> {
-                System.out.println("UI atnaujinamas su žinute: " + message); // Patikrinimas
+                System.out.println("UI atnaujinamas su žinute: " + message);
 
                 if (message.startsWith(instance.nickname + ":")) {
                     instance.chatArea.appendText("Me: " + message.substring(instance.nickname.length() + 1) + "\n");
@@ -47,13 +62,15 @@ public class ChatController {
     @FXML
     private void setNickname() {
         nickname = nicknameField.getText();
-        roomName = roomField.getText().trim(); // Paimam kambario pavadinimą ir pašalinam nereikalingus tarpus
+        roomName = roomField.getText().trim();
 
-        if (roomName.isEmpty()) {
+        if(roomName.isEmpty())
+        {
             roomName = "main";
         }
 
-        if (!nickname.isEmpty()) {
+        if(!nickname.isEmpty())
+        {
             client = new Client(nickname, roomName, this);
 
             chatArea.appendText("Prisijungėte kaip " + nickname + " į kambarį: " + roomName + "\n");
@@ -64,36 +81,42 @@ public class ChatController {
     }
 
     @FXML
-    private void sendMessage() {
-        if (client != null) {
+    private void sendMessage()
+    {
+        if(client != null)
+        {
             String message = inputField.getText();
             if (!message.isEmpty()) {
-                client.sendMessage(message); // Siunčiame žinutę klientui
+                client.sendMessage(message);
 
-                appendMessage(nickname + ": " + message); // Rodyti žinutę pačiame sąsajoje
+                appendMessage(nickname + ": " + message);
 
-                inputField.clear(); // Išvalome įvedimo lauką
+                inputField.clear();
             }
         }
     }
 
     @FXML
-    private void switchRoom() {
-        if (client != null) {
+    private void switchRoom()
+    {
+        if(client != null)
+        {
             String newRoom = switchRoomField.getText();
-            if (!newRoom.isEmpty()) {
-                client.sendMessage("/join " + newRoom); // Pakeičiame kambarį
-                chatArea.clear(); // Išvalome seną chatą
+            if (!newRoom.isEmpty())
+            {
+                client.sendMessage("/join " + newRoom);
+                chatArea.clear();
                 chatArea.appendText("Prisijungėte į kambarį: " + newRoom + "\n");
                 switchRoomField.clear();
             }
         }
     }
 
-    // Naujas metodas privačioms žinutėms
     @FXML
-    private void sendPrivateMessage() {
-        if (client != null) {
+    private void sendPrivateMessage()
+    {
+        if(client != null)
+        {
             String[] parts = privateMessageField.getText().split(":", 2);
             if (parts.length < 2) {
                 chatArea.appendText("Privati žinutė netinkamai suformatuota. Naudok: Vartotojas: Žinutė\n");
@@ -103,7 +126,8 @@ public class ChatController {
             String targetUser = parts[0].trim();
             String message = parts[1].trim();
 
-            if (!targetUser.isEmpty() && !message.isEmpty()) {
+            if(!targetUser.isEmpty() && !message.isEmpty())
+            {
                 client.sendPrivateMessage(targetUser, message);
                 appendMessage("Private message to " + targetUser + ": " + message);
                 privateMessageField.clear();
