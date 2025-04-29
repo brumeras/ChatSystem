@@ -1,8 +1,46 @@
-labas;labas;labas joined the room!
-labas;labas;labas: labas
-ka tu;labas;labas joined the room!
-ka tu;labas;labas: labas
 muzika;emilija;emilija joined the room!
 muzika;emilija;emilija: labas
-/alewgb;lskasjebgf;lskasjebgf joined the room!
-/alewgb;lskasjebgf;lskasjebgf: labas
+main;ugnius;ugnius joined the room!
+main;ugnius;ugnius: labas
+main;ugnius;ugnius left the room.
+muzika;ugnius;ugnius joined the room.
+muzika;emilija;emilija: labas
+muzika;ugnius;ugnius: labas
+muzika;emilija;emilija left the room.
+banas;emilija;emilija joined the room.
+banas;emilija;emilija: labas
+private;emilija;labas
+main;Emilija;Emilija joined the room!
+Bananas;Ugnius;Ugnius joined the room!
+Bananas;Ugnius;Ugnius: labas visiems
+main;Emilija;Emilija left the room.
+Bananas;Emilija;Emilija joined the room.
+main;Emilija;Emilija joined the room!
+muzika;Ugnius;Ugnius joined the room!
+main;Emilija;Emilija left the room.
+muzika;Emilija;Emilija joined the room.
+muzika;Emilija;Emilija: labas
+muzika;Ugnius;Ugnius: labas
+muzika;Emilija;Emilija left the room.
+main;Emilija;Emilija joined the room.
+muzika;Ugnius;Ugnius: as myliu medzius
+main;Emilija;Emilija left the room.
+muzika;Emilija;Emilija joined the room.
+muzika;Emilija;Emilija: labas
+main;emi;emi joined the room!
+bananas;ugnius;ugnius joined the room!
+bananas;ugnius;ugnius: labas
+main;emi;emi left the room.
+bananas;emi;emi joined the room.
+bananas;emi;emi: labas
+main;emilija;emilija joined the room!
+muzika;ugnius;ugnius joined the room!
+muzika;ugnius;ugnius: labas visiems
+main;emilija;emilija left the room.
+muzika;emilija;emilija joined the room.
+main;emilija;emilija joined the room!
+main;ugnius;ugnius joined the room!
+main;emilija;emilija: labas
+main;ugnius;ugnius: labas
+main;emilija;emilija left the room.
+m;emilija;emilija joined the room.

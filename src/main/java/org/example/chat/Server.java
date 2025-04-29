@@ -23,24 +23,19 @@ public class Server implements Runnable {
 
             while (!done) {
                 Socket client = server.accept();
+                System.out.println("New client connected: " + client.getInetAddress());
+
                 ConnectionHandler handler = new ConnectionHandler(client);
                 connections.add(handler);
-                pool.execute(handler);
+
+                new Thread(handler).start(); // Čia paleidžiame kiekvieną klientą atskiroje gijoje
             }
         } catch (IOException e) {
-            System.out.println("Error starting the server:");
             e.printStackTrace();
             shutdown();
         }
     }
 
-    public Set<String> listRooms() {
-        Set<String> rooms = new HashSet<>();
-        for (ConnectionHandler ch : connections) {
-            rooms.add(ch.getRoomName());
-        }
-        return rooms;
-    }
 
     public void broadcast(String message, String roomName, ConnectionHandler sender) {
         for (ConnectionHandler ch : connections) {
@@ -76,6 +71,13 @@ public class Server implements Runnable {
         for (ConnectionHandler ch : connections) {
             ch.shutdown();
         }
+    }
+    public Set<String> listRooms() {
+        Set<String> rooms = new HashSet<>();
+        for (ConnectionHandler ch : connections) {
+            rooms.add(ch.getRoomName());
+        }
+        return rooms;
     }
 
     private synchronized void saveMessageToFile(String room, String sender, String message) {
@@ -128,9 +130,10 @@ public class Server implements Runnable {
 
                 saveUserToFile(nickname, roomName);
 
+                // **Kai keičiam kambarį, parodome senas žinutes**
                 List<String> previousMessages = roomMessages.getOrDefault(roomName, new ArrayList<>());
                 for (String message : previousMessages) {
-                    out.println(message);
+                    out.println(message); // Siunčiame senas žinutes vartotojui
                 }
 
                 broadcast(nickname + " joined the room!", roomName, this);
@@ -147,6 +150,11 @@ public class Server implements Runnable {
                             broadcast(nickname + " left the room.", oldRoom, this);
                             roomName = newRoom;
                             out.println("You have joined the room: " + roomName);
+
+                            List<String> newRoomMessages = roomMessages.getOrDefault(roomName, new ArrayList<>());
+                            for (String msg : newRoomMessages) {
+                                out.println(msg);
+                            }
                             broadcast(nickname + " joined the room.", roomName, this);
                         }
                     } else if (message.startsWith("/private ")) {
@@ -156,7 +164,11 @@ public class Server implements Runnable {
                             String privateMessage = parts[2];
                             sendPrivateMessage(nickname, targetUser, privateMessage);
                         }
-                    } else {
+                    }
+                    else if (message.equalsIgnoreCase("/rooms")) {
+                        out.println("Active rooms: " + String.join(", ", listRooms()));}
+
+                    else {
                         broadcast(nickname + ": " + message, roomName, this);
                     }
                 }

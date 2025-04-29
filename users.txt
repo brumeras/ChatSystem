@@ -1,4 +1,13 @@
-labas;labas
-labas;ka tu
+
 emilija;muzika
-lskasjebgf;/alewgb
+ugnius;main
+Emilija;main
+Ugnius;Bananas
+Emilija;main
+Ugnius;muzika
+emi;main
+ugnius;bananas
+emilija;main
+ugnius;muzika
+emilija;main
+ugnius;main

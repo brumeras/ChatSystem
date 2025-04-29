@@ -5,20 +5,27 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="org.example.chat.ChatController">
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.chat.ChatController">
     <children>
+        <!-- Slapyvardžio ir kambario nustatymas -->
         <TextField fx:id="nicknameField" layoutX="14.0" layoutY="14.0" promptText="Enter your nickname" />
         <TextField fx:id="roomField" layoutX="14.0" layoutY="50.0" promptText="Enter room name" />
-        <Button layoutX="14.0" layoutY="90.0" onAction="#setNickname" text="Set Nickname" />
+        <Button layoutX="14.0" layoutY="90.0" onAction="#setNickname" text="Prisijungti" />
 
-        <TextArea fx:id="chatArea" editable="false" layoutX="14.0" layoutY="129.0" prefHeight="300.0" prefWidth="400.0" />
+        <!-- Pokalbių langas -->
+        <TextArea fx:id="chatArea" editable="false" layoutX="14.0" layoutY="129.0" prefHeight="300.0" prefWidth="453.0" />
 
+        <!-- Žinutės laukelis ir mygtukas -->
         <TextField fx:id="inputField" layoutX="14.0" layoutY="460.0" promptText="Enter message" />
-        <Button layoutX="420.0" layoutY="460.0" onAction="#sendMessage" text="Send" />
+        <Button layoutX="170.0" layoutY="460.0" onAction="#sendMessage" text="Siųsti" />
 
+        <!-- Kambario keitimo laukelis ir mygtukas -->
         <TextField fx:id="switchRoomField" layoutX="14.0" layoutY="500.0" promptText="Switch Room" />
-        <Button layoutX="420.0" layoutY="500.0" onAction="#switchRoom" text="Switch Room" />
-        <TextField fx:id="privateMessageField" layoutX="326.0" layoutY="14.0" promptText="Private Message (user: message)" />
-        <Button layoutX="393.0" layoutY="50.0" onAction="#sendPrivateMessage" text="Send Private" />
+        <Button layoutX="171.0" layoutY="499.0" onAction="#switchRoom" text="Keisti kambarį" />
+
+        <!-- Privataus pranešimo laukelis ir mygtukas -->
+        <TextField fx:id="privateMessageField" layoutX="316.0" layoutY="14.0" promptText="Private Message (user: message)" />
+        <Button layoutX="337.0" layoutY="50.0" onAction="#sendPrivateMessage" text="Siųsti privačią žinutę" />
+
     </children>
 </AnchorPane>

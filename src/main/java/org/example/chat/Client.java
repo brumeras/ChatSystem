@@ -17,33 +17,34 @@ public class Client {
         this.controller = controller;
 
         try {
-            socket = new Socket("localhost", 9999); // Susijungimas su serveriu
+            socket = new Socket("localhost", 9999);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
-            // Siunčiame informaciją apie vartotoją
             out.println(nickname);
             out.println(roomName);
 
-            // Paleisti thread, kuris klausys serverio žinučių
-            new Thread(this::listenForMessages).start();
+            new Thread(this::listenForMessages).start(); // Paleidžiame žinučių klausymą atskiroje gijoje
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     // Klausytųjas, kuris gauna žinutes iš serverio ir jas atnaujina UI
     private void listenForMessages() {
         try {
             String message;
             while ((message = in.readLine()) != null) {
-                // Atnaujina UI, kai gauna žinutę iš serverio
+                System.out.println("Gauta žinutė iš serverio: " + message); // Atspausdiname gautą žinutę
+
                 ChatController.appendMessage(message);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     // Siųsti žinutę serveriui
     public void sendMessage(String message) {
