@@ -11,3 +11,6 @@ emilija;main
 ugnius;muzika
 emilija;main
 ugnius;main
+em;main
+ug;main
+tra;k

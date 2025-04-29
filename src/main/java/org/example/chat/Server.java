@@ -1,3 +1,10 @@
+/*
+@author Emilija Sankauskaitė, 5 grupė, VU Programų sistemos
+Ši klasė implementuoja interfeisą Runnable, kuris yra atsakingas
+už naujos gijos sukūrimą.
+Ši klasė klausosi naujų prisijungusių users ir priima juos.
+Socket- inicijuoja ryšį su klientu.
+*/
 package org.example.chat;
 
 import java.io.*;
@@ -7,39 +14,70 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Server implements Runnable {
-
+public class Server implements Runnable
+{
+    //Saugo visus prisijungusius userius, užtikrina duomenų keitimąsi tarp users.
     private List<ConnectionHandler> connections = new CopyOnWriteArrayList<>();
+
+    //Objektas, kuris atlieka serverio vaidmenį
     private ServerSocket server;
+
+    //Leidžia sustabdyti serverio veiklą.
     private boolean done = false;
     private ExecutorService pool = Executors.newCachedThreadPool();
-    private Map<String, List<String>> roomMessages = new HashMap<>(); // Žinutės pagal kambarius
 
+    //Masyvas, kuriame saugomos žinutės pagal kambarį.
+    private Map<String, List<String>> roomMessages = new HashMap<>();
+
+
+    //Kadangi implementuoja runnable, tai šitas metodas yra privalomas.
+    //Jis paleidžia patį serverį.
     @Override
-    public void run() {
-        try {
+    public void run()
+    {
+        try
+        {
+            //Sukuriamas prievadas.
             server = new ServerSocket(9999);
             System.out.println("Server started on port 9999!");
 
-            while (!done) {
+            //Ciklas, kuris priima klientus.
+            while (!done)
+            {
+                //Sukuriamas naujas Socket objektas, kuris priima naują klientą.
                 Socket client = server.accept();
                 System.out.println("New client connected: " + client.getInetAddress());
 
+                //Sukuriamas naujas connectionHandler objektas, kuris atsakingas už komunikaciją.
                 ConnectionHandler handler = new ConnectionHandler(client);
+                //Vėliau pridedamas į connections.
                 connections.add(handler);
 
-                new Thread(handler).start(); // Čia paleidžiame kiekvieną klientą atskiroje gijoje
+                //Kliento paleidimas atskiroje gijoje
+                //Nauja gija handler objektą vykdo atskirai.
+                //Leidžia klientui turėti nepriklausomą komunikacijos procesą.
+                new Thread(handler).start();
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
+            //Jei klaida, serveris uždaromas.
             shutdown();
         }
     }
 
 
-    public void broadcast(String message, String roomName, ConnectionHandler sender) {
-        for (ConnectionHandler ch : connections) {
-            if (ch != sender && ch.getRoomName().equals(roomName)) {
+    //Išsiunčia pranešimą kambaryje, išskyrus siuntėją.
+    public void broadcast(String message, String roomName, ConnectionHandler sender)
+    {
+        //Cikle eina per visus vartotojus
+        for(ConnectionHandler ch : connections)
+        {
+            //Neleidžia siuntėjui gauti savo paties žinutės.
+            //Siunčia pagal kambarį.
+            if(ch != sender && ch.getRoomName().equals(roomName))
+            {
                 ch.sendMessage(message);
             }
         }
@@ -47,103 +85,141 @@ public class Server implements Runnable {
         saveMessageToFile(roomName, sender.getNickname(), message);
     }
 
-    public void sendPrivateMessage(String senderName, String targetUser, String message) {
-        for (ConnectionHandler ch : connections) {
-            if (ch.getNickname().equals(targetUser)) {
+    public void sendPrivateMessage(String senderName, String targetUser, String message)
+    {
+        for(ConnectionHandler ch : connections)
+        {
+            if(ch.getNickname().equals(targetUser))
+            {
                 ch.sendMessage(senderName + " (private): " + message);
-
-                // Išsaugom privačią žinutę į failą (naudojam specialų "private" kambarį)
                 saveMessageToFile("private", senderName, message);
                 break;
             }
         }
     }
 
-    public void shutdown() {
-        done = true;
-        try {
-            if (server != null && !server.isClosed()) {
+    //Metodas,kuris yra atsakingas už serverio atjungimą.
+    public void shutdown()
+    {
+
+        done=true;
+        try
+        {
+            if (server != null && !server.isClosed())
+            {
                 server.close();
             }
-        } catch (IOException e) {
-            // Ignore
         }
-        for (ConnectionHandler ch : connections) {
+        catch (IOException e)
+        {
+            //ignore
+        }
+        for(ConnectionHandler ch : connections)
+        {
             ch.shutdown();
         }
     }
-    public Set<String> listRooms() {
+
+
+    public Set<String> listRooms()
+    {
+        //Naudojamas HashSet, kad kambariai nesidubliuotų.
         Set<String> rooms = new HashSet<>();
-        for (ConnectionHandler ch : connections) {
+        for(ConnectionHandler ch : connections)
+        {
             rooms.add(ch.getRoomName());
         }
         return rooms;
     }
 
-    private synchronized void saveMessageToFile(String room, String sender, String message) {
-        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("messages.txt"), true))) {
+
+    //Synchronized, nes taip yra apsaugotas nuo kelių užrašymų keliuose gijose
+    private synchronized void saveMessageToFile(String room, String sender, String message)
+    {
+        try(PrintWriter writer = new PrintWriter(new FileOutputStream(new File("messages.txt"), true)))
+        {
             writer.println(room + ";" + sender + ";" + message);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
 
-    private synchronized void saveUserToFile(String nickname, String room) {
-        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("users.txt"), true))) {
+    private synchronized void saveUserToFile(String nickname, String room)
+    {
+        try (PrintWriter writer = new PrintWriter(new FileOutputStream(new File("users.txt"), true)))
+        {
             writer.println(nickname + ";" + room);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
     }
 
-    public class ConnectionHandler implements Runnable {
+    public class ConnectionHandler implements Runnable
+    {
         private Socket client;
         private BufferedReader in;
         private PrintWriter out;
         private String nickname;
         private String roomName;
 
-        public ConnectionHandler(Socket client) {
+        public ConnectionHandler(Socket client)
+        {
             this.client = client;
         }
 
-        public String getNickname() {
+        public String getNickname()
+        {
             return nickname;
         }
 
-        public String getRoomName() {
+        public String getRoomName()
+        {
             return roomName;
         }
 
         @Override
-        public void run() {
+        public void run()
+        {
             try {
+                //Siųsti žinutėms.
                 out = new PrintWriter(client.getOutputStream(), true);
+                //Gauti žinutes.
                 in = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
                 nickname = in.readLine();
                 roomName = in.readLine();
 
                 if (roomName == null || roomName.trim().isEmpty()) {
-                    roomName = "main"; // Numatytasis kambarys
+                    roomName = "main";
                 }
 
                 saveUserToFile(nickname, roomName);
 
-                // **Kai keičiam kambarį, parodome senas žinutes**
+
                 List<String> previousMessages = roomMessages.getOrDefault(roomName, new ArrayList<>());
-                for (String message : previousMessages) {
-                    out.println(message); // Siunčiame senas žinutes vartotojui
+
+                for(String message : previousMessages)
+                {
+                    out.println(message);
                 }
 
                 broadcast(nickname + " joined the room!", roomName, this);
 
                 String message;
-                while ((message = in.readLine()) != null) {
-                    if (message.equalsIgnoreCase("/quit")) {
+
+                while((message = in.readLine()) != null)
+                {
+                    if (message.equalsIgnoreCase("/quit"))
+                    {
                         shutdown();
                         break;
-                    } else if (message.startsWith("/join ")) {
+                    }
+                    else if(message.startsWith("/join "))
+                    {
                         String newRoom = message.substring(6).trim();
                         if (!newRoom.isEmpty()) {
                             String oldRoom = roomName;
@@ -157,7 +233,9 @@ public class Server implements Runnable {
                             }
                             broadcast(nickname + " joined the room.", roomName, this);
                         }
-                    } else if (message.startsWith("/private ")) {
+                    }
+                    else if (message.startsWith("/private "))
+                    {
                         String[] parts = message.split(" ", 3);
                         if (parts.length > 2) {
                             String targetUser = parts[1];
@@ -168,7 +246,8 @@ public class Server implements Runnable {
                     else if (message.equalsIgnoreCase("/rooms")) {
                         out.println("Active rooms: " + String.join(", ", listRooms()));}
 
-                    else {
+                    else
+                    {
                         broadcast(nickname + ": " + message, roomName, this);
                     }
                 }
@@ -177,22 +256,30 @@ public class Server implements Runnable {
             }
         }
 
-        public void sendMessage(String message) {
+        public void sendMessage(String message)
+        {
             out.println(message);
         }
 
-        public void shutdown() {
-            try {
+        public void shutdown()
+        {
+            try
+            {
                 connections.remove(this);
-                if (nickname != null) {
+
+                if(nickname!=null)
+                {
                     broadcast(nickname + " left the room.", roomName, this);
                 }
                 if (in != null) in.close();
                 if (out != null) out.close();
-                if (client != null && !client.isClosed()) {
+                if (client != null && !client.isClosed())
+                {
                     client.close();
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 // Ignore
             }
         }

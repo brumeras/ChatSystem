@@ -44,3 +44,10 @@ main;emilija;emilija: labas
 main;ugnius;ugnius: labas
 main;emilija;emilija left the room.
 m;emilija;emilija joined the room.
+main;em;em joined the room!
+main;ug;ug joined the room!
+k;tra;tra joined the room!
+main;ug;ug: labas
+k;tra;tra left the room.
+main;tra;tra joined the room.
+private;em;laqbas
